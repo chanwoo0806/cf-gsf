@@ -1,0 +1,6 @@
+__pycache__/
+log/
+test/
+.DS_Store
+*.sh
+*.npy

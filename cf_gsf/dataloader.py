@@ -84,7 +84,7 @@ class DataHandler:
         else:
             norm_inter = self.get_normalized_inter()
             u, s, v = svds(norm_inter, which='LM', k=args.ideal_num, random_state=args.rand_seed) # SVD for k largest singular vals
-            self.ideal = torch.tensor(v.T).to(args.device)
+            self.ideal = torch.tensor(v.T.copy()).to(args.device)
             
     def pf_get_pre(self):
         inter = self.get_inter()

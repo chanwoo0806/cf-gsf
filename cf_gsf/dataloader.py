@@ -10,13 +10,13 @@ from cf_gsf.configurator import args
 from cf_gsf.util import scipy_coo_to_torch_sparse
 
 class AllRankTstData(data.Dataset):
-    def __init__(self, coomat, trn_mat):
-        self.csrmat = (trn_mat.tocsr() != 0) * 1.0
-        user_pos_lists = [list() for i in range(coomat.shape[0])]
+    def __init__(self, tst_mat, trn_mat):
+        self.trn_mat = (trn_mat.tocsr() != 0) * 1.0
+        user_pos_lists = [list() for _ in range(tst_mat.shape[0])]
         test_users = set()
-        for i in range(len(coomat.data)):
-            row = coomat.row[i]
-            col = coomat.col[i]
+        for i in range(len(tst_mat.data)):
+            row = tst_mat.row[i]
+            col = tst_mat.col[i]
             user_pos_lists[row].append(col)
             test_users.add(row)
         self.test_users = np.array(list(test_users))
@@ -27,7 +27,7 @@ class AllRankTstData(data.Dataset):
     
     def __getitem__(self, idx):
         pck_user = self.test_users[idx]
-        pck_mask = self.csrmat[pck_user].toarray()
+        pck_mask = self.trn_mat[pck_user].toarray()
         pck_mask = np.reshape(pck_mask, [-1])
         return pck_user, pck_mask
 

@@ -62,8 +62,8 @@ class PolyFilter(BaseModel):
         pass
 
     def _get_signal(self, pck_users):
-        inter = self.data_handler.inter
         pck_users = pck_users.long().cpu().numpy()
+        inter = self.data_handler.inter
         signal = torch.tensor(inter[pck_users].todense()).to(args.device).T 
         return signal # (N,B)
     

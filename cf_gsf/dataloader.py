@@ -86,14 +86,8 @@ class DataHandler:
             u, s, v = svds(norm_inter, which='LM', k=args.ideal_num, random_state=args.rand_seed) # SVD for k largest singular vals
             self.ideal = torch.tensor(v.T.copy()).to(args.device)
             
-    def pf_get_pre(self):
+    def pf_get_prepost(self, method, val):
         inter = self.get_inter()
         item_degree = torch.tensor(np.array(inter.sum(axis=0)).flatten()).to(args.device)
-        if args.pre == 'power':
-            return (item_degree + 1e-10).pow(args.pre_val)
-        
-    def pf_get_post(self):
-        inter = self.get_inter()
-        item_degree = torch.tensor(np.array(inter.sum(axis=0)).flatten()).to(args.device)
-        if args.post == 'power':
-            return (item_degree + 1e-10).pow(args.post_val)
+        if method == 'power':
+            return (item_degree + 1e-10).pow(val)

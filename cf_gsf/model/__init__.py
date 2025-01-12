@@ -37,12 +37,12 @@ class PolyFilter(BaseModel):
         self.params = torch.tensor(args.weights).to(args.device)
         self.data_handler = data_handler
         self.data_handler.pf_set_inter()
-        if args.ideal_num:
+        if args.ideal_weight:
             self.data_handler.pf_set_ideal()
         if args.pre:
-            self.pre = self.data_handler.pf_get_pre()
+            self.pre = self.data_handler.pf_get_prepost(args.pre, args.pre_val)
         if args.post:
-            self.post = self.data_handler.pf_get_post()
+            self.post = self.data_handler.pf_get_prepost(args.post, args.post_val)
         
     def get_bases(self, signal, norm_inter):
         '''return bases for the polynomial
@@ -69,22 +69,27 @@ class PolyFilter(BaseModel):
     
     def _get_norm_inter(self):
         norm_inter = self.data_handler.norm_inter
-        return norm_inter # (N,N)
+        return norm_inter # (M,N)
 
     def _get_ideal(self): 
         return self.data_handler.ideal # (N,ideal_num)
 
     def forward(self, pck_users):        
         signal = self._get_signal(pck_users) # (N,B)
-        norm_inter = self._get_norm_inter() # (N,N)
+        norm_inter = self._get_norm_inter() # (M,N)
+        # preprocessing
         if args.pre:
             signal = signal * self.pre.reshape(-1,1)
+        # polynomial filtering    
         bases = self.get_bases(signal, norm_inter) # (K,N,B)
         coeffs = self.get_coeffs() # (K,)
         full_preds = torch.einsum('K,KNB->BN', coeffs, bases) # (B,N)
-        if args.ideal_num:
+        # ideal pass filtering
+        if args.ideal_weight:
             ideal = self._get_ideal() # (N,ideal_num)
-            full_preds += args.ideal_weight * (signal.T @ ideal @ ideal.T)
+            ideal_preds = signal.T @ ideal @ ideal.T # (B,N)
+            full_preds += args.ideal_weight * ideal_preds
+        # postprocessing
         if args.post:
             full_preds = full_preds * self.post.reshape(1,-1)
         return full_preds # (B,N)

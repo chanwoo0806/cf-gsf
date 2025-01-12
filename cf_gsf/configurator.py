@@ -25,9 +25,6 @@ def configurate():
     parser.add_argument('--dataset', type=str)
     parser.add_argument('--evaluator', type=str)
     
-    ### GFCF & PGSP
-    parser.add_argument('--ideal', type=float, help='weight of ideal low-pass filter')
-    
     ### PolyFilter
     parser.add_argument('--order', type=int)
     parser.add_argument('--weights', type=str)

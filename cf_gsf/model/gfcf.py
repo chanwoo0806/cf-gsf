@@ -1,44 +1,48 @@
 import torch
-import numpy as np
-import scipy.sparse as sp
-from scipy.sparse.linalg import svds
+from torch import spmm
 from cf_gsf.model import BaseModel
 from cf_gsf.configurator import args
 
 class GFCF(BaseModel):
     def __init__(self, data_handler):
-        super().__init__(data_handler)
-        self.inter = data_handler.get_inter() # R (scipy-coo)
-        self.cutoff = 256
-        self.set_filter()
-        
-    def set_filter(self):
-        user_degree = np.array(self.inter.sum(axis=1)).flatten() # Du
-        item_degree = np.array(self.inter.sum(axis=0)).flatten() # Di
-        user_d_inv_sqrt = sp.diags(np.power(user_degree + 1e-10, -0.5)) # Du^(-0.5)
-        item_d_inv_sqrt = sp.diags(np.power(item_degree + 1e-10, -0.5)) # Di^(-0.5)
-        item_d_sqrt = sp.diags(np.power(item_degree, 0.5))  # Di^(0.5)
-        self.item_d_sqrt = item_d_sqrt
-        self.item_d_inv_sqrt = item_d_inv_sqrt
-        
-        self.norm_inter = (user_d_inv_sqrt @ self.inter @ item_d_inv_sqrt).tocsc() # R_tilde (scipy-csc)
-        self.norm_inter_t = self.norm_inter.transpose().tocsc() # R_tilde^T (scipy-csc)
+        super().__init__(data_handler)        
+        self.data_handler = data_handler
+        self.data_handler.pf_set_inter()
+        if args.ideal_weight:
+            args.ideal_num = 256
+            self.data_handler.pf_set_ideal()
+        self.pre = self.data_handler.pf_get_prepost('power', -0.5)
+        self.post = self.data_handler.pf_get_prepost('power', 0.5)
+            
+    def _get_signal(self, pck_users):
+        pck_users = pck_users.long().cpu().numpy()
+        inter = self.data_handler.inter
+        signal = torch.tensor(inter[pck_users].todense()).to(args.device).T 
+        return signal # (N,B)
 
-        u, s, v = svds(self.norm_inter, which='LM', k=self.cutoff, random_state=args.rand_seed) # SVD for k largest singular values
-        self.v = v.T # right singular vecs (numpy)
-        
-        self.inter = self.inter.tocsr() # R (scipy-csr)
+    def _get_norm_inter(self):
+        norm_inter = self.data_handler.norm_inter
+        return norm_inter # (M,N)
+
+    def _get_ideal(self): 
+        return self.data_handler.ideal # (N,ideal_num)
+    
+    def forward(self, pck_users):        
+        signal = self._get_signal(pck_users) # (N,B)
+        norm_inter = self._get_norm_inter() # (M,N)
+        # linear filtering
+        full_preds = spmm(norm_inter, signal) # (M,B)
+        full_preds = spmm(norm_inter.t(), full_preds) # (N,B)
+        full_preds = full_preds.T # (B,N)
+        # ideal pass filtering
+        if args.ideal_weight:
+            ideal = self._get_ideal() # (N,ideal_num)
+            ideal_preds = signal.T * self.pre @ ideal @ ideal.T * self.post # (B,N)
+            full_preds += args.ideal_weight * ideal_preds
+        return full_preds # (B,N)
     
     def full_predict(self, batch_data):
         pck_users, train_mask = batch_data
-        pck_users = pck_users.long().cpu().numpy()
-        
-        signal = self.inter[pck_users].todense() # rows of R (numpy)
-        pred_linear = signal @ self.norm_inter_t @ self.norm_inter
-        pred_ideal  = signal @ self.item_d_inv_sqrt @ self.v @ self.v.T @ self.item_d_sqrt
-        
-        full_preds = pred_linear + args.ideal * pred_ideal
-        full_preds = torch.tensor(full_preds).to(args.device)    
+        full_preds = self.forward(pck_users)
         full_preds = self._mask_predict(full_preds, train_mask)
         return full_preds
-        

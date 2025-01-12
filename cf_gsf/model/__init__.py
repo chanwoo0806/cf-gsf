@@ -34,7 +34,7 @@ class BaseModel(nn.Module):
 class PolyFilter(BaseModel):
     def __init__(self, data_handler):
         super().__init__(data_handler)
-        self.params = torch.tensor(args.weights)
+        self.params = torch.tensor(args.weights).to(args.device)
         self.data_handler = data_handler
         self.data_handler.pf_set_inter()
         if args.ideal_num:

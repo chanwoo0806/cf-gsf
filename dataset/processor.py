@@ -51,9 +51,10 @@ def svd_solver(args):
     if not os.path.exists(f'./{args.dataset}/svd'):
         os.makedirs(f'./{args.dataset}/svd')
     
-    np.save(f'./{args.dataset}/svd/u.npy', u)
-    np.save(f'./{args.dataset}/svd/s.npy', s)
-    np.save(f'./{args.dataset}/svd/v.npy', v)
+    name = 'full' if args.full else str(args.cutoff)    
+    np.save(f'./{args.dataset}/svd/u_{name}.npy', u)
+    np.save(f'./{args.dataset}/svd/s_{name}.npy', s)
+    np.save(f'./{args.dataset}/svd/v_{name}.npy', v)
     
 def read_cf(file_name):
     inter_mat = list()

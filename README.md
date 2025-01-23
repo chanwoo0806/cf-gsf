@@ -17,15 +17,12 @@ conda install matplotlib
 
 # Examples
 ```bash
-# Amazon-book (Recall@20: 0.0735, NDCG@20: 0.0607)
-python main.py --default polyfilter --model pf_chebii --dataset amazon-book --order 8 --weights 1.0,0.875,0.75,0.625,0.5,0.375,0.25,0.125,0.0
+# LastFM (Recall@20: 0.1199, NDCG@20: 0.1101
+python main.py --default polyfilter --model pf_chebii --dataset last-fm --order 8 --weights 1.0,0.653,0.503,0.5,0.5,0.5,0.497,0.347,0.0 --ideal_num 256 --ideal_weight 0.1 --pre power --pre_val -0.2 --post power --post_val 0.2
 
-# Gowalla (Recall@20: 0.1923, NDCG@20: 0.1612)
-python main.py --default polyfilter --model pf_chebii --dataset gowalla --order 5 --weights 1.0,0.8,0.6,0.4,0.2,0.0 --ideal_num 512 --ideal_weight 0.4 --pre power --pre_val -0.5 --post power --post_val 0.5
+# Gowalla (Recall@20: 0.1941, NDCG@20: 0.1616)
+python main.py --default polyfilter --model pf_chebii --dataset gowalla --order 8 --weights 1.0,0.944,0.797,0.619,0.5,0.381,0.203,0.056,0.0 --ideal_num 512 --ideal_weight 0.2 --pre power --pre_val -0.4 --post power --post_val 0.4
 
-# Gowalla (Recall@20: 0.1925, NDCG@20: 0.1600)
-python main.py --default polyfilter --model pf_chebii --dataset gowalla --order 5 --weights 1.0,0.8,0.6,0.4,0.2,0.0 --ideal_num 512 --ideal_weight 0.4 --pre power --pre_val -0.4 --post power --post_val 0.4
-
-# Yelp2018 (Recall@20: 0.0716, NDCG@20: 0.0590)
-python main.py --default polyfilter --model pf_chebii --dataset yelp2018 --order 5 --weights 1.0,0.8,0.6,0.4,0.2,0.0 --ideal_num 256 --ideal_weight 0.3 --pre power --pre_val -0.1 --post power --post_val 0.1
+# Amazon-book (Recall@20: 0.0738, NDCG@20: 0.0613)
+python main.py --default polyfilter --model pf_chebii --dataset amazon-book --order 8 --weights 1.0,0.727,0.516,0.5,0.5,0.5,0.484,0.273,0.0 --ideal_num 512 --ideal_weight 0.2 --pre power --pre_val -0.0 --post power --post_val 0.0
 ```

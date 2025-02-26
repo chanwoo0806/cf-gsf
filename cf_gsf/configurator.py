@@ -36,7 +36,12 @@ def configurate():
     parser.add_argument('--pre_val', type=float)
     parser.add_argument('--post', type=str)
     parser.add_argument('--post_val', type=float)
-                                                                                                     
+    
+    ### Truncated
+    parser.add_argument('--cutoff', type=float)
+    parser.add_argument('--cutoff_how', type=str)
+    parser.add_argument('--plateau_power', type=float)
+                                                               
     args = parser.parse_args()
     
     # Use default values if args are not given

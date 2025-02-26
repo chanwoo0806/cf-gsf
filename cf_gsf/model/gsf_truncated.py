@@ -25,9 +25,12 @@ class GSF_Truncated(BaseModel):
         rescaled_freq = 2 * freq - 1 # rescale to [-1,1]
         # plateau
         pos, neg = (rescaled_freq >= 0), (rescaled_freq < 0)
-        pos_weight = -0.5 *  (rescaled_freq * pos.float()).pow(self.plateau_power) + 0.5 # in [0,1]
-        neg_weight = 0.5 *  (-rescaled_freq * neg.float()).pow(self.plateau_power) + 0.5 # in [-1,0]
-        plateau = pos_weight + neg_weight
+        # pos_weight = -0.5 *  (rescaled_freq * pos.float()).pow(self.plateau_power) + 0.5 # in [0,1]
+        # neg_weight = 0.5 *  (-rescaled_freq * neg.float()).pow(self.plateau_power) + 0.5 # in [-1,0]
+        # plateau = pos_weight + neg_weight
+        rescaled_freq[pos] = -0.5 *  (rescaled_freq[pos].pow(self.plateau_power)) + 0.5
+        rescaled_freq[neg] = 0.5 *  (-rescaled_freq[neg]).pow(self.plateau_power) + 0.5
+        plateau = rescaled_freq
         # ideal
         ideal = torch.zeros_like(plateau)
         ideal[:self.ideal_num] = 1.0

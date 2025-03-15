@@ -10,10 +10,6 @@ conda install jupyter
 conda install tqdm
 conda install matplotlib
 ```
-# Hyperparameters
-* $\alpha$: `pre_val`
-* $\beta$: `post_val`
-* $D^{\beta} R D^{\alpha}$: `power` 
 
 # Examples
 ```bash
